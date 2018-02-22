@@ -1,0 +1,62 @@
+﻿/*
+* Company: Neoway (Test)
+* File: transform_empresa_calc_teste_bi
+* Objective: build model
+* Created at: 2018-02-20
+* Author: Ismael Virtuoso 
+*/
+$(Include=../../config/config.qvs);
+
+Call vPathArchive;
+
+LET vSumVehicle = 'vl_total_veiculos_leves + vl_total_veiculos_pesados';
+
+empresas:
+LOAD *,
+     nm_municipio & ', ' & sg_uf & ', BR' as municipio_uf_pais
+;
+LOAD DISTINCT
+     num(cd_cnpj, '00000000000000') as cd_cnpj, 
+     if(fl_matriz = 1, 'Sim', 'Não') as fl_matriz, 
+     Date(dt_abertura, 'DD/MM/YYYY') as dt_abertura, 
+     nm_razao_social, 
+     cd_natureza_juridica, 
+     de_natureza_juridica, 
+     nm_logradouro, 
+     nu_logradouro, 
+     cd_cep, 
+     nm_bairro, 
+     nm_municipio, 
+     if(len(sg_uf) < 1, 'NI', sg_uf) as sg_uf, 
+     if(len(de_situacao) < 1, 'Não Informado', de_situacao) as de_situacao, 
+     if(len(de_classif_natureza_juridica) < 1, 'Não Informado', de_classif_natureza_juridica) as de_classif_natureza_juridica
+FROM $(vPathDataMirrors)empresas.qvd (qvd);
+
+LEFT JOIN(empresas)
+LOAD 
+     num(cd_cnpj, '00000000000000') as cd_cnpj, 
+     vl_latitude, 
+     vl_longitude, 
+     if(vl_total_veiculos_antt > 0, 'Sim', 'Não') as veiculos_antt, 
+     if($(vSumVehicle) >= 0 and $(vSumVehicle) <=5, '0 a 5',
+          if($(vSumVehicle) >= 6 and $(vSumVehicle) <=10, '6 a 10',
+               if($(vSumVehicle) >= 11 and $(vSumVehicle) <=15, '11 a 15',
+                    if($(vSumVehicle) >= 16 and $(vSumVehicle) <=30, '16 a 30',
+                         if($(vSumVehicle) >= 31 and $(vSumVehicle) <=50, '31 a 50',
+                              if($(vSumVehicle) >= 50, ' > 50'
+                                   )
+                              )
+                         )
+                    )
+               )
+          )  as faixa_veiculo,
+     vl_total_veiculos_leves, 
+     vl_total_veiculos_pesados, 
+     if(fl_optante_simples = 1, 'Sim', 'Não') as fl_optante_simples,
+     qt_filial,
+     if(fl_optante_simei = 1, 'Sim', 'Não') as fl_optante_simei,
+     if(len(de_saude_tributaria) < 1, 'Não Informado', de_saude_tributaria) as de_saude_tributaria, 
+     if(len(de_nivel_atividade) < 1, 'Não Informado', de_nivel_atividade) as de_nivel_atividade
+FROM $(vPathDataMirrors)empresas_calc.qvd (qvd);
+
+Call vStoreFile('$(vPathDataTransformed)','',Null(),Null(), 'S');

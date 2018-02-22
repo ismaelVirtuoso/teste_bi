@@ -1,0 +1,40 @@
+/**
+* Company: Neoway (Test)
+* File: extract_CNAE_teste_bi
+* Objective: extract data from CNAE "csv" file
+* Created at: 2018-02-20
+* Author: Ismael Virtuoso 
+**/
+$(Include=../../config/config.qvs);
+
+Call vPathArchive;
+
+LET vDelimiter = '~@~';
+
+CNAE:
+LOAD cd_cnpj,
+	 SubField(nu_ordem,'$(vDelimiter)',1) as nu_ordem_1,
+	 SubField(nu_ordem,'$(vDelimiter)',2) as nu_ordem_2,
+	 SubField(nu_ordem,'$(vDelimiter)',3) as nu_ordem_3,
+	 SubField(nu_ordem,'$(vDelimiter)',4) as nu_ordem_4,
+	 SubField(nu_ordem,'$(vDelimiter)',5) as nu_ordem_5,
+	 SubField(cd_ramo_atividade,'$(vDelimiter)',1) as cd_ramo_atividade_1,
+	 SubField(cd_ramo_atividade,'$(vDelimiter)',2) as cd_ramo_atividade_2,
+	 SubField(cd_ramo_atividade,'$(vDelimiter)',3) as cd_ramo_atividade_3,
+	 SubField(cd_ramo_atividade,'$(vDelimiter)',4) as cd_ramo_atividade_4,
+	 SubField(cd_ramo_atividade,'$(vDelimiter)',5) as cd_ramo_atividade_5,
+	 PurgeChar(SubField(de_ramo_atividade,'$(vDelimiter)',1), ',;') as de_ramo_atividade_1,
+	 PurgeChar(SubField(de_ramo_atividade,'$(vDelimiter)',2), ',;') as de_ramo_atividade_2,
+	 PurgeChar(SubField(de_ramo_atividade,'$(vDelimiter)',3), ',;') as de_ramo_atividade_3,
+	 PurgeChar(SubField(de_ramo_atividade,'$(vDelimiter)',4), ',;') as de_ramo_atividade_4,
+	 PurgeChar(SubField(de_ramo_atividade,'$(vDelimiter)',5), ',;') as de_ramo_atividade_5
+;
+LOAD DISTINCT 
+	 cd_cnpj, 
+     nu_ordem, 
+     cd_ramo_atividade, 
+     de_ramo_atividade
+FROM [$(vPathSpreadSheets)CNAE.csv]
+(txt, utf8, embedded labels, delimiter is ';', msq);
+
+Call vStoreFile('$(vPathDataTransformed)','',Null(),Null(), 'S');

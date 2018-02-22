@@ -1,0 +1,22 @@
+﻿/**
+* Company: Neoway (Test)
+* File: extract_setores_ramos_atividade_teste_bi
+* Objective: extract data from empresas table
+* Created at: 2018-02-20
+* Author: Ismael Virtuoso 
+**/
+$(Include=../../config/config.qvs);
+
+Call vPathArchive;
+
+ODBC CONNECT TO mongoDB;
+
+setores_ramos_atividade:
+LOAD
+    if(ramoAtividade='null', 'Não Informado', ramoAtividade) as ramoAtividade,
+    divisoes,
+    num(doisDigitosCNAE, '00') as doisDigitosCNAE;
+SQL SELECT *
+FROM "bi_prodction"."setores_ramos_atividade";
+
+Call vStoreFile('$(vPathDataMirrors)','',Null(),Null(), 'S');

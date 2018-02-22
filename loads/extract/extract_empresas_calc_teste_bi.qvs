@@ -1,0 +1,28 @@
+/**
+* Company: Neoway (Test)
+* File: extract_empresas_calc_teste_bi
+* Objective: extract data from empresas table
+* Created at: 2018-02-20
+* Author: Ismael Virtuoso 
+**/
+$(Include=../../config/config.qvs);
+
+Call vPathArchive;
+
+empresas_calc:
+LOAD DISTINCT
+     cd_cnpj, 
+     vl_latitude, 
+     vl_longitude, 
+     vl_total_veiculos_antt, 
+     vl_total_veiculos_leves, 
+     vl_total_veiculos_pesados, 
+     fl_optante_simples, 
+     qt_filial, 
+     fl_optante_simei, 
+     de_saude_tributaria, 
+     de_nivel_atividade
+FROM [..\..\files\spreadsheets\empresasCalc.csv]
+(txt, utf8, embedded labels, delimiter is ';', msq);
+
+Call vStoreFile('$(vPathDataMirrors)','',Null(),Null(),'S');

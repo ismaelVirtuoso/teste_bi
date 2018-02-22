@@ -1,0 +1,45 @@
+﻿/*
+* Company: Neoway (Test)
+* File: data_cloud_teste_bi
+* Objective: build model
+* Created at: 2018-02-20
+* Author: Ismael Virtuoso 
+*/
+Binary ..\..\loads\dataCloud\data_cloud_teste_bi.qvw;
+
+$(Include=../../config/config.qvs);
+$(Include=../../config/google_maps.qvs);
+
+LET showCurrentFilter = 0;
+
+// define cores dos temas do layout
+LET showThemeOptions = 0;
+LET azul =  RGB(9,30,51);
+LET azulClaro = RGB(24,83,141);
+LET azulTextoDesativado = RGB(88,157,226);
+
+LET cinza = RGB(97,97,97);
+LET cinzaClaro = RGB(155,155,155);
+LET cinzaTextoDesativado = RGB(111,111,111);
+
+LET laranja = RGB(249,124,0);
+LET laranjaClaro = RGB(255,190,125);
+LET laranjaTextoDesativado = RGB(255,140,26);
+
+// tema default (tema azul)
+LET fundoEscuro = RGB(9,30,51);
+LET fundoClaro = RGB(24,83,141);
+LET textoDesativado = RGB(88,157,226);
+LET textoAtivado = White();
+
+// totalizadores
+LET totalEmpresas = 'Count(DISTINCT cd_cnpj)';
+LET totalEmpresasMatrizes = 'Count({$<fl_matriz={"SIM"}>} DISTINCT [cd_cnpj])';
+LET totalEmpresasFiliais = 'Count({$<fl_matriz={"NÃO"}>} DISTINCT [cd_cnpj])';
+LET totalEmpresasOptanteSIMEI = 'Count({$<fl_optante_simei={"SIM"}>} DISTINCT [cd_cnpj])';
+LET totalEmpresasOptanteSIMPLES = 'Count({$<fl_optante_simples={"SIM"}>} DISTINCT [cd_cnpj])';
+LET totalEmpresasPublicas = 'Count({$<de_classif_natureza_juridica={"PUBLICO"}>} DISTINCT [cd_cnpj])';
+LET totalEmpresasPrivadas = 'Count({$<de_classif_natureza_juridica={"PRIVADO"}>} DISTINCT [cd_cnpj])';
+LET totalEmpresasMistas = 'Count({$<de_classif_natureza_juridica={"MISTA"}>} DISTINCT [cd_cnpj])';
+LET totalEmpresasAtivas = 'Count({$<de_situacao={"ATIVA"}>} DISTINCT [cd_cnpj])';
+LET totalEmpresasBaixadas = 'Count({$<de_situacao={"BAIXADA"}>} DISTINCT [cd_cnpj])';
