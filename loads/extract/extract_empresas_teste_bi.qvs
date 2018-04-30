@@ -1,0 +1,34 @@
+﻿/*
+* Company: Neoway (Test)
+* File: data_cloud_teste_bi
+* Objective: extract companies data from "empresas" table
+* Created at: 2018-02-20
+* Author: Ismael Virtuoso 
+*/
+
+$(Include=../../config/config.qvs);
+
+Call vPathArchive;
+
+ODBC CONNECT TO teste_bi;
+
+empresas:
+LOAD DISTINCT 
+	"cd_cnpj",
+    "fl_matriz",
+    "dt_abertura",
+    "nm_razao_social",
+    "cd_natureza_juridica",
+    "de_natureza_juridica",
+    "nm_logradouro",
+    "nu_logradouro",
+    "cd_cep",
+    "nm_bairro",
+    "nm_municipio",
+    "sg_uf",
+    "de_situacao",
+    "de_classif_natureza_juridica";
+SQL SELECT *
+FROM "teste_bi"."public"."empresas";
+
+Call vStoreFile('$(vPathDataMirrors)','',Null(),Null(), 'S');

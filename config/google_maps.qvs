@@ -1,0 +1,42 @@
+﻿/* Zoom máximo permitido */
+SET max_zoom_level = 18;
+
+/* Recuo da latitude */
+SET var_lat_offset = '0';
+
+/* Número para posição da latitude */
+SET var_mid_lat = '=min(latitude)+(1+var_lat_offset)*((max(latitude)-min(latitude))/2)';
+
+/* Número para posição da longitude */
+SET var_mid_long = '=min(longitude)+(max(longitude)-min(longitude))/2';
+
+/* Cálculo de Zoom para centralizar o mapa na posição correta */
+SET var_zoom = '=max(aggr(if(max( round(256*pow(2,(_zoom_level -1)))+(longitude *((256*pow(2,_zoom_level ))/360)) )-min( round(256*pow(2,(_zoom_level -1)))+(longitude *((256*pow(2,_zoom_level ))/360)) ) <map_size_x AND max((256*pow(2,(_zoom_level-1)))+((0.5*log((1+(sin((latitude)*pi()/180)))/(1-(sin((latitude)*pi()/180)))))*((-256*pow(2,_zoom_level))/(2*pi()))))-min((256*pow(2,(_zoom_level-1)))+((0.5*log((1+(sin((latitude)*pi()/180)))/(1-(sin((latitude)*pi()/180)))))*((-256*pow(2,_zoom_level))/(2*pi()))))<map_size_y,_zoom_level,1),_zoom_level))';
+
+/* Altera o tipo de mapa */
+SET var_maptype = '%27=if(isnull(only(maptype)),fieldvalue(%20%27&chr(39)&%27maptype%27&chr(39)&%27,%201%20),maptype)%27';
+
+/* Tamanho do Mapa */
+SET map_size_x = '640';
+SET map_size_y = '400'; 
+
+/* Omitir o campo de Zoom */
+
+SET HidePrefix = '_';
+
+/* Campo necessário para cálculo do melhor Zoom */
+_zoom_level:
+LOAD
+RecNo( ) as _zoom_level
+autogenerate(max_zoom_level);
+
+/* Tipos de mapas disponíveis */
+maptype:
+LOAD * INLINE [
+maptype
+roadmap
+mobile
+satellite
+terrain
+hybrid
+];

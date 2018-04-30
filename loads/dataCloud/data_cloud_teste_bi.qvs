@@ -1,0 +1,187 @@
+/*
+* Company: Neoway (Test)
+* File: data_cloud_teste_bi
+* Objective: build model
+* Created at: 2018-02-20
+* Author: Ismael Virtuoso 
+*/
+$(Include=../../config/config.qvs);
+$(Include=../../config/calendar.qvs);
+
+Call vPathArchive;
+
+stg_companies:
+LOAD cd_cnpj,
+     nm_razao_social, 
+     vl_total_veiculos_leves, 
+     vl_total_veiculos_pesados,
+     qt_filial,  
+     dt_abertura, 
+
+     Autonumber( de_situacao&
+     de_classif_natureza_juridica& 
+     faixa_veiculo&
+     de_natureza_juridica&
+     cd_natureza_juridica& 
+     veiculos_antt&
+     fl_optante_simples&
+     fl_optante_simei&
+     fl_matriz&
+     de_saude_tributaria& 
+     de_nivel_atividade, 'pk_companies') as pk_companies,
+
+     de_situacao, 
+     de_classif_natureza_juridica, 
+     faixa_veiculo, 
+     de_natureza_juridica, 
+     cd_natureza_juridica, 
+     veiculos_antt, 
+     fl_optante_simples,
+     fl_optante_simei, 
+     fl_matriz,
+     de_saude_tributaria, 
+     de_nivel_atividade,
+
+     Autonumber(nm_logradouro& 
+     nu_logradouro&
+     cd_cep&
+     nm_bairro& 
+     nm_municipio& 
+     sg_uf&
+     vl_latitude& 
+     vl_longitude&
+     municipio_uf_pais, 'pk_location') as pk_location,
+
+     nm_logradouro, 
+     nu_logradouro, 
+     cd_cep, 
+     nm_bairro, 
+     nm_municipio, 
+     sg_uf,
+     vl_latitude, 
+     vl_longitude,
+     municipio_uf_pais
+FROM $(vPathDataTransformed)empresas.qvd (qvd);
+
+LEFT JOIN (stg_companies)
+LOAD *,
+     AutonumberHash256( nu_ordem_1& 
+     nu_ordem_2& 
+     nu_ordem_3& 
+     nu_ordem_4& 
+     nu_ordem_5& 
+     doisDigitosCNAE&
+     cd_ramo_atividade_1& 
+     cd_ramo_atividade_2& 
+     cd_ramo_atividade_3& 
+     cd_ramo_atividade_4& 
+     cd_ramo_atividade_5& 
+     de_ramo_atividade_1& 
+     de_ramo_atividade_2& 
+     de_ramo_atividade_3& 
+     de_ramo_atividade_4& 
+     de_ramo_atividade_5, 'pk_cnae') as pk_cnae
+;
+LOAD cd_cnpj, 
+     nu_ordem_1, 
+     nu_ordem_2, 
+     nu_ordem_3, 
+     nu_ordem_4, 
+     nu_ordem_5, 
+     left(cd_ramo_atividade_1, 2) as doisDigitosCNAE,
+     cd_ramo_atividade_1, 
+     cd_ramo_atividade_2, 
+     cd_ramo_atividade_3, 
+     cd_ramo_atividade_4, 
+     cd_ramo_atividade_5, 
+     de_ramo_atividade_1, 
+     de_ramo_atividade_2, 
+     de_ramo_atividade_3, 
+     de_ramo_atividade_4, 
+     de_ramo_atividade_5
+FROM $(vPathDataTransformed)CNAE.qvd (qvd);
+
+// --------------------------------------------------------
+// --------------------build dimensions--------------------
+// --------------------------------------------------------
+
+dim_location:
+LOAD DISTINCT
+     pk_location,
+     nm_logradouro, 
+     nu_logradouro, 
+     cd_cep, 
+     nm_bairro, 
+     nm_municipio, 
+     sg_uf,
+     vl_latitude as latitude, 
+     vl_longitude as longitude,
+     municipio_uf_pais
+RESIDENT stg_companies;
+
+dim_companies:
+LOAD DISTINCT
+     pk_companies,
+     de_situacao, 
+     de_classif_natureza_juridica, 
+     faixa_veiculo, 
+     de_natureza_juridica, 
+     cd_natureza_juridica, 
+     veiculos_antt, 
+     fl_optante_simples,
+     fl_optante_simei, 
+     fl_matriz,
+     de_saude_tributaria, 
+     de_nivel_atividade
+RESIDENT stg_companies;
+
+dim_cnae:
+LOAD DISTINCT
+     pk_cnae,
+     nu_ordem_1, 
+     nu_ordem_2, 
+     nu_ordem_3, 
+     nu_ordem_4, 
+     nu_ordem_5,
+     cd_ramo_atividade_1, 
+     cd_ramo_atividade_2, 
+     cd_ramo_atividade_3, 
+     cd_ramo_atividade_4, 
+     cd_ramo_atividade_5, 
+     de_ramo_atividade_1, 
+     de_ramo_atividade_2, 
+     de_ramo_atividade_3, 
+     de_ramo_atividade_4, 
+     de_ramo_atividade_5
+RESIDENT stg_companies;
+
+dim_setores_ramos_atividade:
+LOAD ramoAtividade, 
+     divisoes, 
+     doisDigitosCNAE
+FROM $(vPathDataMirrors)setores_ramos_atividade.qvd (qvd);
+
+// --------------------------------------------------
+// --------------------fact table--------------------
+// --------------------------------------------------
+fact_table:
+LOAD
+     cd_cnpj,
+     nm_razao_social, 
+     vl_total_veiculos_leves, 
+     vl_total_veiculos_pesados,
+     qt_filial,  
+     dt_abertura,
+     pk_location,
+     pk_companies,
+     pk_cnae,
+     doisDigitosCNAE
+RESIDENT stg_companies;
+
+DROP TABLE stg_companies;
+
+//Create Calendar Table
+Call calendar('dt_abertura', 'fact_table'); 
+
+// call vStoreFiles without drop tables
+Call vStoreFile('$(vPathStorePbi)','','csv','txt, delimiter is ";"', 'N');
